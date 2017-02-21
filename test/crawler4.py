@@ -59,6 +59,7 @@ while len(urls)>0:
 parser = MyHTMLParser()
 stemmer = PorterStemmer()
 docIDs = {}
+stemToIDs = {}
 ID = 0
 # print(visited)
 for url in visited:
@@ -79,6 +80,12 @@ for url in visited:
             stemmed = [stemmer.stem(word) for word in words]
             print("After Stemmed: ")
             print(stemmed)
+            for stem in stemmed:
+                if(stemmed.get(stem) == None):
+                    stemmed[stem] = []
+                    stemmed[stem].append(ID)
+                else:
+                    stemmed[stem].append(ID)
         if(soup.find('title')):
             print soup.find('title').text
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
@@ -89,4 +96,5 @@ for url in visited:
         print e.msg
 print("Doc IDs: ")
 for key,val in docIDs.iteritems():
-    print(str(key) + str(val))
+    print(str(key) + " : " + str(val))
+print(stemmed)
