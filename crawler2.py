@@ -1,6 +1,8 @@
 from html.parser import HTMLParser
 from urllib.request import urlopen
 from urllib import parse
+import lxml.html
+
 
 # We are going to create a class called LinkParser that inherits some
 # methods from HTMLParser which is why it is passed into the definition
@@ -25,6 +27,9 @@ class LinkParser(HTMLParser):
                     newUrl = parse.urljoin(self.baseUrl, value)
                     # And add it to our colection of links:
                     self.links = self.links + [newUrl]
+                    #**
+                    t = lxml.html.parse(newUrl)
+                    print (t.find(".//title").text)
 
     # This is a new function that we are creating to get links
     # that our spider() function will call
@@ -39,7 +44,10 @@ class LinkParser(HTMLParser):
         # are floating around on the internet (such as
         # JavaScript files, CSS, or .PDFs for example)
         if response.getheader('Content-Type')=='text/html':
+            t = lxml.html.parse(url)
+            print (t.find(".//title").text)
             htmlBytes = response.read()
+            # print(htmlBytes)
             # Note that feed() handles Strings well, but not bytes
             # (A change from Python 2.x to Python 3.x)
             htmlString = htmlBytes.decode("utf-8")
@@ -81,4 +89,4 @@ def spider(url, word, maxPages):
         print("The word", word, "was found at", url)
     else:
         print("Word never found")
-spider("http://lyle.smu.edu/~fmoore","tentative",5)
+spider("http://lyle.smu.edu/~fmoore","Porter",50)
