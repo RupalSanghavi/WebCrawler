@@ -10,6 +10,7 @@ import urlparse
 import mechanize
 from HTMLParser import HTMLParser
 from urllib2 import urlopen, HTTPError
+import re
 
 
 
@@ -59,8 +60,14 @@ for url in visited:
         data = usock.read()
         usock.close()
         soup = BS(data, "html5lib")
+        reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
+        if(reg):
+            print(soup.findAll(text=True))
         if(soup.find('title')):
             print soup.find('title').text
+        is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
+        if(is_graphic):
+            print(str(url) + " is a graphic. ")
     except HTTPError, e:
         print e.code
         print e.msg
