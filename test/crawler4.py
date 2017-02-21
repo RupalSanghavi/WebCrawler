@@ -11,7 +11,7 @@ import mechanize
 from HTMLParser import HTMLParser
 from urllib2 import urlopen, HTTPError
 import re
-
+from nltk.stem import *
 
 
 class MyHTMLParser(HTMLParser):
@@ -39,21 +39,28 @@ while len(urls)>0:
     try:
         br.open(urls[0])
         urls.pop(0)
-        for link in br.links():
-            newurl =  urlparse.urljoin(link.base_url,link.url)
-            #print newurl
-            if newurl not in visited and url in newurl:
-                visited.append(newurl)
-                urls.append(newurl)
-                print(newurl)
+        try:
+            for link in br.links():
+                newurl =  urlparse.urljoin(link.base_url,link.url)
+                #print newurl
+                if newurl not in visited and url in newurl:
+                    visited.append(newurl)
+                    urls.append(newurl)
+                    print(newurl)
+        except mechanize._mechanize.BrowserStateError:
+            print("Cannot crawl: " + str(urls[0]))
+
 
     except:
         if(len(urls)>0):
-            print("error"+ str(urls[0]))
+            print("Broken: "+ str(urls[0]))
             urls.pop(0)
 
 parser = MyHTMLParser()
-print(visited)
+stemmer = PorterStemmer()
+docIDs = {}
+ID = 0
+# print(visited)
 for url in visited:
     try:
         usock = urlopen(url)
@@ -62,7 +69,16 @@ for url in visited:
         soup = BS(data, "html5lib")
         reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
         if(reg):
-            print(soup.findAll(text=True))
+            docIDs[ID] = url
+            ID += 1
+            print("WORDS:")
+            text = soup.findAll(text=True)
+            textJoined = ' '.join(text)
+            words = re.split('\W+', textJoined, flags=re.IGNORECASE)
+            print(words)
+            stemmed = [stemmer.stem(word) for word in words]
+            print("After Stemmed: ")
+            print(stemmed)
         if(soup.find('title')):
             print soup.find('title').text
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
@@ -71,3 +87,6 @@ for url in visited:
     except HTTPError, e:
         print e.code
         print e.msg
+print("Doc IDs: ")
+for key,val in docIDs.iteritems():
+    print(str(key) + str(val))
