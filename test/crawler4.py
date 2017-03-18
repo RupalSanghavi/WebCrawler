@@ -30,6 +30,8 @@ br = mechanize.Browser()
 # create lists for the urls in que and visited urls
 urls = [url]
 visited = [url]
+outgoing = []
+graphics = []
 
 
 # Since the amount of urls in the list is dynamic
@@ -42,11 +44,12 @@ while len(urls)>0:
         try:
             for link in br.links():
                 newurl =  urlparse.urljoin(link.base_url,link.url)
-                #print newurl
+                #print("** ",newurl)
                 if newurl not in visited and url in newurl:
                     visited.append(newurl)
                     urls.append(newurl)
-                    print(newurl)
+                elif url not in newurl:
+                    outgoing.append(newurl)
         except mechanize._mechanize.BrowserStateError:
             print("Cannot crawl: " + str(urls[0]))
 
@@ -54,12 +57,14 @@ while len(urls)>0:
     except:
         if(len(urls)>0):
             print("Broken: "+ str(urls[0]))
+            visited.append(urls[0])
             urls.pop(0)
 
 parser = MyHTMLParser()
 stemmer = PorterStemmer()
 docIDs = {}
 stemToIDs = {}
+stemWordFreq = {}
 ID = 0
 # print(visited)
 for url in visited:
@@ -72,29 +77,39 @@ for url in visited:
         if(reg):
             docIDs[ID] = url
             ID += 1
-            print("WORDS:")
             text = soup.findAll(text=True)
             textJoined = ' '.join(text)
             words = re.split('\W+', textJoined, flags=re.IGNORECASE)
-            print(words)
+            # print("WORDS:")
+            # print(words)
             stemmed = [stemmer.stem(word) for word in words]
-            print("After Stemmed: ")
-            print(stemmed)
+            # print("After Stemmed: ")
+            # print(stemmed)
             for stem in stemmed:
-                if(stemmed.get(stem) == None):
-                    stemmed[stem] = []
-                    stemmed[stem].append(ID)
+                if(stemWordFreq.get(stem) == None):
+                    stemWordFreq[stem] = []
+                    stemWordFreq[stem].append(ID)
                 else:
-                    stemmed[stem].append(ID)
+                    stemWordFreq[stem].append(ID)
         if(soup.find('title')):
-            print soup.find('title').text
+            print("title: ", soup.find('title').text)
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
         if(is_graphic):
+            graphics.append(url)
             print(str(url) + " is a graphic. ")
     except HTTPError, e:
         print e.code
         print e.msg
-print("Doc IDs: ")
-for key,val in docIDs.iteritems():
-    print(str(key) + " : " + str(val))
-print(stemmed)
+# print("Doc IDs: ")
+# for key,val in docIDs.iteritems():
+#     print(str(key) + " : " + str(val))
+# print("Doc Freqs: ")
+# print(stemWordFreq)
+# print("word : freq")
+# for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
+#     print(str(word) + " : " + str(len(stemWordFreq[word])))
+print("URLS: ")
+print(visited)
+print("Outgoing: ")
+print(outgoing)
+#print(set(visited) - set(outgoing) - set(graphics))
