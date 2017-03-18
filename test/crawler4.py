@@ -95,13 +95,15 @@ for url in visited:
         usock.close()
         soup = BS(data, "html5lib")
         reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
+        dup = False
         for link in soup.find_all('meta'):
             #if duplicate
             if link.get('content') in counts:
                 duplicates.append(url)
+                dup = True
             else:
                 counts[link.get('content')] = 1
-        if(reg):
+        if(reg and not dup):
             docIDs[ID] = url
             ID += 1
             text = soup.findAll(text=True)
@@ -109,7 +111,14 @@ for url in visited:
             words = re.split('\W+', textJoined, flags=re.IGNORECASE)
             # print("WORDS:")
             # print(words)
-            stemmed = [stemmer.stem(word) for word in words]
+
+            stemmed = []
+            for word in words:
+                if(len(word) > 1):
+                    stemmed.append(stemmer.stem(word))
+                    #print(word,stemmer.stem(word))
+
+            #stemmed = [stemmer.stem(word) for word in words]
             # print("After Stemmed: ")
             # print(stemmed)
             for stem in stemmed:
@@ -127,14 +136,15 @@ for url in visited:
     except HTTPError, e:
         print e.code
         print e.msg
-# print("Doc IDs: ")
-# for key,val in docIDs.iteritems():
-#     print(str(key) + " : " + str(val))
-# print("Doc Freqs: ")
-# print(stemWordFreq)
-# print("word : freq")
-# for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
-#     print(str(word) + " : " + str(len(stemWordFreq[word])))
+print("Doc IDs: ")
+for key,val in docIDs.iteritems():
+    print(str(key) + " : " + str(val))
+print("Documents each word is on: ")
+# for word in stemWordFreq:
+#     print(word + " " + stemWordFreq[word])
+print("word : freq")
+for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
+    print(str(word) + " : " + str(len(stemWordFreq[word])))
 print("URLS: ")
 print(visited)
 print("Outgoing: ")
