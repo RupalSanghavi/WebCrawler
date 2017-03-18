@@ -12,6 +12,7 @@ from HTMLParser import HTMLParser
 from urllib2 import urlopen, HTTPError
 import re
 from nltk.stem import *
+import robotparser
 
 
 class MyHTMLParser(HTMLParser):
@@ -32,6 +33,9 @@ urls = [url]
 visited = [url]
 outgoing = []
 graphics = []
+duplicates = []
+counts = {}
+disallowed = []
 
 
 # Since the amount of urls in the list is dynamic
@@ -45,11 +49,27 @@ while len(urls)>0:
             for link in br.links():
                 newurl =  urlparse.urljoin(link.base_url,link.url)
                 #print("** ",newurl)
-                if newurl not in visited and url in newurl:
+                #print("!! ", link.url)
+                if url not in newurl:
+                    outgoing.append(newurl)
+                # if newurl in visited:
+                #     duplicates.append(newurl)
+                # usock = urlopen(newurl)
+                # data = usock.read()
+                # usock.close()
+                # soup = BS(data, "html5lib")
+
+                #check if not disallowed
+                rp = robotparser.RobotFileParser()
+                rp.set_url(url+ "/robots.txt")
+                rp.read()
+                allowed = rp.can_fetch('*','/'+link.url)
+                print(allowed," ",link.url)
+                if newurl not in visited and url in newurl and allowed:
                     visited.append(newurl)
                     urls.append(newurl)
-                elif url not in newurl:
-                    outgoing.append(newurl)
+                if not allowed:
+                    disallowed.append(newurl)
         except mechanize._mechanize.BrowserStateError:
             print("Cannot crawl: " + str(urls[0]))
 
@@ -69,11 +89,18 @@ ID = 0
 # print(visited)
 for url in visited:
     try:
+        #print("!!",url)
         usock = urlopen(url)
         data = usock.read()
         usock.close()
         soup = BS(data, "html5lib")
         reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
+        for link in soup.find_all('meta'):
+            #if duplicate
+            if link.get('content') in counts:
+                duplicates.append(url)
+            else:
+                counts[link.get('content')] = 1
         if(reg):
             docIDs[ID] = url
             ID += 1
@@ -112,4 +139,8 @@ print("URLS: ")
 print(visited)
 print("Outgoing: ")
 print(outgoing)
+print("Duplicates: ")
+print(duplicates)
+print("Disallowed: ")
+print(disallowed)
 #print(set(visited) - set(outgoing) - set(graphics))
