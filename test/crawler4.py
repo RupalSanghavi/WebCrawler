@@ -13,6 +13,7 @@ from urllib2 import urlopen, HTTPError
 import re
 from nltk.stem import *
 import robotparser
+from nltk.corpus import stopwords
 
 
 class MyHTMLParser(HTMLParser):
@@ -111,9 +112,11 @@ for url in visited:
             words = re.split('\W+', textJoined, flags=re.IGNORECASE)
             # print("WORDS:")
             # print(words)
+            filtered_words = [word for word in words if word not in
+                set(stopwords.words('english'))]
 
             stemmed = []
-            for word in words:
+            for word in filtered_words:
                 if(len(word) > 1):
                     stemmed.append(stemmer.stem(word))
                     #print(word,stemmer.stem(word))
