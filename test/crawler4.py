@@ -15,7 +15,7 @@ from nltk.stem import *
 import robotparser
 from nltk.corpus import stopwords
 import time
-
+import sys
 
 class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
@@ -32,20 +32,25 @@ br = mechanize.Browser()
 
 # create lists for the urls in que and visited urls
 urls = [url]
-visited = [url]
+toVisit = []
+visited = []
 outgoing = []
 graphics = []
 duplicates = []
 counts = {}
 disallowed = []
-
+maxPages = int(sys.argv[1])
+print("MaX: ", maxPages)
+count = 0
+broken = []
 
 # Since the amount of urls in the list is dynamic
 #   we just let the spider go until some last url didn't
 #   have new ones on the webpage
-while len(urls)>0:
+while (len(urls)>0) and (count < maxPages):
     try:
         br.open(urls[0])
+        count += 1
         urls.pop(0)
         try:
             for link in br.links():
@@ -54,6 +59,7 @@ while len(urls)>0:
                 #print("!! ", link.url)
                 if url not in newurl:
                     outgoing.append(newurl)
+                    visited.append(newurl)
                 # if newurl in visited:
                 #     duplicates.append(newurl)
                 # usock = urlopen(newurl)
@@ -66,23 +72,25 @@ while len(urls)>0:
                 rp.set_url(url+ "/robots.txt")
                 rp.read()
                 allowed = rp.can_fetch('*','/'+link.url)
-                print(allowed," ",link.url)
+                #print(allowed," ",link.url)
                 if newurl not in visited and url in newurl and allowed:
+                    toVisit.append(newurl)
                     visited.append(newurl)
                     urls.append(newurl)
                 if not allowed:
                     disallowed.append(newurl)
+                    visited.append(newurl)
         except mechanize._mechanize.BrowserStateError:
             print("Cannot crawl: " + str(urls[0]))
         print("Delaying...")
-        time.sleep(0.5)
-
-
+        time.sleep(0.2)
     except:
         if(len(urls)>0):
+            broken.append(urls[0])
             print("Broken: "+ str(urls[0]))
             visited.append(urls[0])
             urls.pop(0)
+
 
 parser = MyHTMLParser()
 stemmer = PorterStemmer()
@@ -90,8 +98,9 @@ docIDs = {}
 stemToIDs = {}
 stemWordFreq = {}
 ID = 0
+titles = {}
 # print(visited)
-for url in visited:
+for url in toVisit:
     try:
         #print("!!",url)
         usock = urlopen(url)
@@ -120,8 +129,8 @@ for url in visited:
 
             stemmed = []
             for word in filtered_words:
-                if(len(word) > 1):
-                    stemmed.append(stemmer.stem(word))
+                if(len(word) > 1 and not word.isdigit()):
+                    stemmed.append(stemmer.stem(word.lower()))
                     #print(word,stemmer.stem(word))
 
             #stemmed = [stemmer.stem(word) for word in words]
@@ -134,6 +143,7 @@ for url in visited:
                 else:
                     stemWordFreq[stem].append(ID)
         if(soup.find('title')):
+            titles[url] = soup.find('title').text
             print("title: ", soup.find('title').text)
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
         if(is_graphic):
@@ -146,17 +156,33 @@ print("Doc IDs: ")
 for key,val in docIDs.iteritems():
     print(str(key) + " : " + str(val))
 print("Documents each word is on: ")
-# for word in stemWordFreq:
-#     print(word + " " + stemWordFreq[word])
-print("word : freq")
+for word in stemWordFreq:
+    print word, stemWordFreq[word]
+count = 1
+print("Word : Freq : Documents that word is on")
 for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
-    print(str(word) + " : " + str(len(stemWordFreq[word])))
+    print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
+    count += 1
+
 print("URLS: ")
-print(visited)
+for url in visited:
+    print(url)
+print("Titles: ")
+for url in titles:
+    print url, titles[url]
 print("Outgoing: ")
-print(outgoing)
+for url in set(outgoing):
+    print url
 print("Duplicates: ")
-print(duplicates)
+for url in duplicates:
+    print url
 print("Disallowed: ")
 print(disallowed)
+print("Broken: ")
+for url in broken:
+    print(url)
+print("Graphic Files: ")
+print str(len(graphics))
+for url in graphics:
+    print(url)
 #print(set(visited) - set(outgoing) - set(graphics))
