@@ -14,6 +14,7 @@ import re
 from nltk.stem import *
 import robotparser
 from nltk.corpus import stopwords
+import time
 
 
 class MyHTMLParser(HTMLParser):
@@ -73,6 +74,8 @@ while len(urls)>0:
                     disallowed.append(newurl)
         except mechanize._mechanize.BrowserStateError:
             print("Cannot crawl: " + str(urls[0]))
+        print("Delaying...")
+        time.sleep(0.5)
 
 
     except:
