@@ -60,6 +60,7 @@ while (len(urls)>0) and (count < maxPages):
                 if url not in newurl:
                     outgoing.append(newurl)
                     visited.append(newurl)
+                    toVisit.append(newurl)
                 # if newurl in visited:
                 #     duplicates.append(newurl)
                 # usock = urlopen(newurl)
@@ -99,8 +100,18 @@ stemToIDs = {}
 stemWordFreq = {}
 ID = 0
 titles = {}
+def visible(element):
+    if element.parent.name in ['style', 'script', '[document]', 'head', 'title',
+    'meta']:
+        return False
+    elif isinstance(element,bs4.element.Comment):
+        return False
+    return True
+
 # print(visited)
 for url in toVisit:
+    if url == "mailto:fmoore@lyle.smu.edu":
+        continue
     try:
         #print("!!",url)
         usock = urlopen(url)
@@ -110,12 +121,14 @@ for url in toVisit:
         reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
         dup = False
         for link in soup.find_all('meta'):
+            if(filter(visible,link)):
             #if duplicate
-            if link.get('content') in counts:
-                duplicates.append(url)
-                dup = True
-            else:
-                counts[link.get('content')] = 1
+                if link.get('content') in counts:
+                    duplicates.append(url)
+                    dup = True
+                else:
+                    counts[link.get('content')] = 1
+
         if(reg and not dup):
             docIDs[ID] = url
             ID += 1
@@ -128,8 +141,10 @@ for url in toVisit:
                 set(stopwords.words('english'))]
 
             stemmed = []
+            removed_more = []
             for word in filtered_words:
-                if(len(word) > 1 and not word.isdigit()):
+                if(len(word) > 1 and not any(c.isdigit() for c in word)):
+                    removed_more.append(word)
                     stemmed.append(stemmer.stem(word.lower()))
                     #print(word,stemmer.stem(word))
 
@@ -155,15 +170,21 @@ for url in toVisit:
 print("Doc IDs: ")
 for key,val in docIDs.iteritems():
     print(str(key) + " : " + str(val))
-print("Documents each word is on: ")
-for word in stemWordFreq:
-    print word, stemWordFreq[word]
+print("Stemmed Words: ")
+for word in stemmed:
+    print word,
+print("")
+# for word in stemWordFreq:
+#     print word, stemWordFreq[word]
 count = 1
 print("Word : Freq : Documents that word is on")
 for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
     print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
     count += 1
-
+print("Words:")
+for word in removed_more:
+    print word,
+print("")
 print("URLS: ")
 for url in visited:
     print(url)
