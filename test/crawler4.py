@@ -40,6 +40,10 @@ duplicates = []
 counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
+query = ["moore","smu"]
+# for i in range(2,len(sys.argv)):
+#     query.append(sys.argv[i])
+# print(query)
 print("MaX: ", maxPages)
 count = 0
 broken = []
@@ -83,8 +87,8 @@ while (len(urls)>0) and (count < maxPages):
                     visited.append(newurl)
         except mechanize._mechanize.BrowserStateError:
             print("Cannot crawl: " + str(urls[0]))
-        print("Delaying...")
-        time.sleep(0.2)
+        # print("Delaying...")
+        # time.sleep(0.2)
     except:
         if(len(urls)>0):
             broken.append(urls[0])
@@ -98,6 +102,7 @@ stemmer = PorterStemmer()
 docIDs = {}
 stemToIDs = {}
 stemWordFreq = {}
+removed_more_freq = {}
 ID = 0
 titles = {}
 def visible(element):
@@ -144,10 +149,16 @@ for url in toVisit:
             removed_more = []
             for word in filtered_words:
                 if(len(word) > 1 and not any(c.isdigit() for c in word)):
+                    word = word.lower()
                     removed_more.append(word)
-                    stemmed.append(stemmer.stem(word.lower()))
+                    stemmed.append(stemmer.stem(word))
                     #print(word,stemmer.stem(word))
-
+            for word in removed_more:
+                if(removed_more_freq.get(word) == None):
+                    removed_more_freq[word] = []
+                    removed_more_freq[word].append(ID)
+                else:
+                    removed_more_freq[word].append(ID)
             #stemmed = [stemmer.stem(word) for word in words]
             # print("After Stemmed: ")
             # print(stemmed)
@@ -178,9 +189,13 @@ print("")
 #     print word, stemWordFreq[word]
 count = 1
 print("Word : Freq : Documents that word is on")
-for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
-    print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
+for word in sorted(removed_more_freq, key=lambda word: len(removed_more_freq[word]),reverse=True):
+    print count, str(word),  " : ", str(len(removed_more_freq[word])), " : ",
+    removed_more_freq[word]
     count += 1
+# for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
+#     print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
+#     count += 1
 print("Words:")
 for word in removed_more:
     print word,
