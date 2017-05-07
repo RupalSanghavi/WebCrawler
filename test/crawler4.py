@@ -312,7 +312,6 @@ for doc in norm_doc_vectors:
     i += 1
 docs_products = [] # [doc1word1score, doc2word1score, ...]
               # [doc1word2score, doc2word2score, ...]
-i = 0
 
 for doc in norm_doc_vectors:
     doc_product = []
@@ -324,7 +323,16 @@ for doc in docs_products:
     print("Doc")
     for prod in doc:
         print prod
+doc_scores = {} # {url: sum of products}
+i = 0
 
+for doc in docs_products:
+    doc_scores[visited[i]] = sum(doc)
+    i += 1
+
+print "Final Scores:"
+for url in doc_scores:
+    print url, ": ", doc_scores[url]
 # print("Words:")
 # for word in removed_more:
 #     print word,
