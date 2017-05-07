@@ -211,7 +211,7 @@ word = "fmoore"
 
 tf_raw_word = []
 tf_wght_word = []
-normalized_query = []
+
 # for word in query:
 #     #word
 #     normalized_word = []
@@ -256,6 +256,27 @@ normalized_query = []
 #     for score in normalized_word:
 #         print score
 #
+
+#normalizing the query
+query_word_counts = {}
+for word in query:
+    if word not in query_word_counts:
+        query_word_counts[word] = 1
+    else:
+        query_word_counts[word] = query_word_counts[word] + 1
+query_term_sq_sum = 0
+for word in query:
+    query_term_sq_sum += pow(query_word_counts[word],2)
+query_terms_sqrt = math.sqrt(query_term_sq_sum)
+print("sqrt: ")
+print(query_terms_sqrt)
+query_norm_term_freq_vect = []
+for word in query:
+    query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
+print("Query Scores: ")
+for score in query_norm_term_freq_vect:
+    print score
+
 norm_doc_vectors = []
 url = visited[0]
 for url in visited:
@@ -270,13 +291,10 @@ for url in visited:
             if(term_freq[word].get(url) == None):
                 sum_squares += 0
             else:
-                print "INNN"
                 sum_squares += pow(term_freq[word][url],2)
     sq_sum = math.sqrt(sum_squares)
             #sparse vector for all documents for a word
     for word in query:
-        print "word: " + word
-        print "Sum: " + str(sq_sum)
         if(term_freq.get(word) == None):
             normalized_word.append(0)
         elif(term_freq[word].get(url) == None):
@@ -284,7 +302,6 @@ for url in visited:
         else:
             n_score = term_freq[word][url]/sq_sum
             normalized_word.append(n_score)
-            print "score: " + str(n_score)
     norm_doc_vectors.append(normalized_word)
 print "Scores: "
 i = 1
