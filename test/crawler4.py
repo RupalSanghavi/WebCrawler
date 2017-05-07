@@ -284,127 +284,129 @@ tf_wght_word = []
 #
 
 #normalizing the query
-query_word_counts = {}
-for word in query:
-    if word not in query_word_counts:
-        query_word_counts[word] = 1
-    else:
-        query_word_counts[word] = query_word_counts[word] + 1
-query_term_sq_sum = 0
-for word in query:
-    query_term_sq_sum += pow(query_word_counts[word],2)
-query_terms_sqrt = math.sqrt(query_term_sq_sum)
-
-query_norm_term_freq_vect = []
-for word in removed_more_freq:
-    if(word in query_word_counts):
-        query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
-    else:
-        query_norm_term_freq_vect.append(0)
-# print("Query Scores: ")
-# print query_norm_term_freq_vect
-# for score in query_norm_term_freq_vect:
-#     print score
-
-norm_doc_vectors = []
-url = visited[0]
-for url in visited:
-    sq_sum = 0
-    normalized_word = []
-    sum_squares = 0
-    for word in removed_more_freq:
-        if(term_freq.get(word) == None):
-            print("")
-            #thesaurus
+def calc_sim(query):
+    query_word_counts = {}
+    for word in query:
+        if word not in query_word_counts:
+            query_word_counts[word] = 1
         else:
-            if(term_freq[word].get(url) == None):
-                sum_squares += 0
+            query_word_counts[word] = query_word_counts[word] + 1
+    query_term_sq_sum = 0
+    for word in query:
+        query_term_sq_sum += pow(query_word_counts[word],2)
+    query_terms_sqrt = math.sqrt(query_term_sq_sum)
+
+    query_norm_term_freq_vect = []
+    for word in removed_more_freq:
+        if(word in query_word_counts):
+            query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
+        else:
+            query_norm_term_freq_vect.append(0)
+    # print("Query Scores: ")
+    # print query_norm_term_freq_vect
+    # for score in query_norm_term_freq_vect:
+    #     print score
+
+    norm_doc_vectors = []
+    url = visited[0]
+    for url in visited:
+        sq_sum = 0
+        normalized_word = []
+        sum_squares = 0
+        for word in removed_more_freq:
+            if(term_freq.get(word) == None):
+                print("")
+                #thesaurus
             else:
-                sum_squares += pow(term_freq[word][url],2)
-    sq_sum = math.sqrt(sum_squares)
-    # print url + " " + str(sq_sum)
-            #sparse vector for all documents for a word
-    # print "url: " + url
-    for word in removed_more_freq:
-        if(term_freq.get(word) == None):
-            # print word+ "*"
-            normalized_word.append(0)
-        elif(term_freq[word].get(url) == None):
-            # print word+ "**"
-            normalized_word.append(0)
-        else:
-            # print word+ "***"
-            n_score = term_freq[word][url]/sq_sum
-            normalized_word.append(n_score)
-    norm_doc_vectors.append(normalized_word)
-# print "Scores: "
-# i = 1
-# print norm_doc_vectors
-# for doc in norm_doc_vectors:
-#     print "Doc: " + str(i)
-#     for score in doc:
-#         print str(score)
-#     i += 1
-docs_products = [] # [doc1word1score, doc2word1score, ...]
-              # [doc1word2score, doc2word2score, ...]
+                if(term_freq[word].get(url) == None):
+                    sum_squares += 0
+                else:
+                    sum_squares += pow(term_freq[word][url],2)
+        sq_sum = math.sqrt(sum_squares)
+        # print url + " " + str(sq_sum)
+                #sparse vector for all documents for a word
+        # print "url: " + url
+        for word in removed_more_freq:
+            if(term_freq.get(word) == None):
+                # print word+ "*"
+                normalized_word.append(0)
+            elif(term_freq[word].get(url) == None):
+                # print word+ "**"
+                normalized_word.append(0)
+            else:
+                # print word+ "***"
+                n_score = term_freq[word][url]/sq_sum
+                normalized_word.append(n_score)
+        norm_doc_vectors.append(normalized_word)
+    # print "Scores: "
+    # i = 1
+    # print norm_doc_vectors
+    # for doc in norm_doc_vectors:
+    #     print "Doc: " + str(i)
+    #     for score in doc:
+    #         print str(score)
+    #     i += 1
+    docs_products = [] # [doc1word1score, doc2word1score, ...]
+                  # [doc1word2score, doc2word2score, ...]
 
-for doc in norm_doc_vectors:
-    doc_product = []
-    for i in range(0,len(doc)):
-        doc_product.append(query_norm_term_freq_vect[i]*doc[i])
-    docs_products.append(doc_product)
-i = 1
-# print "Products: "
-# print docs_products
-# for doc in docs_products:
-#     print "Doc" + str(i)
-#     for prod in doc:
-#         print prod
-#     i += 1
-doc_scores = {} # {url: sum of products}
-i = 0
+    for doc in norm_doc_vectors:
+        doc_product = []
+        for i in range(0,len(doc)):
+            doc_product.append(query_norm_term_freq_vect[i]*doc[i])
+        docs_products.append(doc_product)
+    i = 1
+    # print "Products: "
+    # print docs_products
+    # for doc in docs_products:
+    #     print "Doc" + str(i)
+    #     for prod in doc:
+    #         print prod
+    #     i += 1
+    doc_scores = {} # {url: sum of products}
+    i = 0
 
-for doc in docs_products:
-    doc_scores[visited[i]] = sum(doc)
-    i += 1
-#
-# print "Final Scores:"
-# for url in doc_scores:
-#     print url, ": ", doc_scores[url]
+    for doc in docs_products:
+        doc_scores[visited[i]] = sum(doc)
+        i += 1
+    #
+    # print "Final Scores:"
+    # for url in doc_scores:
+    #     print url, ": ", doc_scores[url]
 
-#sort dictionary:
-doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
-#doc_scores_list = [[key,val] for key,val in doc_scores.items()]
-doc_sums = [value for value in doc_scores.values()]
-zipped = zip(doc_sums,visited)
-zipped.sort()
-sorted_urls = list(reversed([url for (doc_sum,url) in zipped]))
-sorted_sums = list(reversed([doc_sum for (doc_sum,url) in zipped]))
+    #sort dictionary:
+    doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
+    #doc_scores_list = [[key,val] for key,val in doc_scores.items()]
+    doc_sums = [value for value in doc_scores.values()]
+    zipped = zip(doc_sums,visited)
+    zipped.sort()
+    sorted_urls = list(reversed([url for (doc_sum,url) in zipped]))
+    sorted_sums = list(reversed([doc_sum for (doc_sum,url) in zipped]))
 
-print "Sums: "
-print sorted_sums
-print sorted_urls
-print str(len(sorted_sums)) + " " + str(len(sorted_urls))
+    print "Sums: "
+    print sorted_sums
+    print sorted_urls
+    print str(len(sorted_sums)) + " " + str(len(sorted_urls))
 
-for url in doc_scores_sorted:
-    if url == "mailto:fmoore@lyle.smu.edu":
-        continue
-    try:
-        usock = urlopen(url)
-        data = usock.read()
-        usock.close()
-        soup = BS(data, "html5lib")
-        if(soup.find('title')):
-            titles[url] = soup.find('title').text
-            words = re.split('\W+', titles[url], flags=re.IGNORECASE)
-            print("title: ", soup.find('title').text)
-            #if title contains words in query
-            if(len(set([word.lower() for word in query])
-                .intersection([word.lower() for word in words])) > 0):
-                doc_scores_sorted[url] = doc_scores_sorted[url] + 0.5
-    except HTTPError, e:
-        print e.code
-        print e.msg
+    for url in doc_scores_sorted:
+        if url == "mailto:fmoore@lyle.smu.edu":
+            continue
+        try:
+            usock = urlopen(url)
+            data = usock.read()
+            usock.close()
+            soup = BS(data, "html5lib")
+            if(soup.find('title')):
+                titles[url] = soup.find('title').text
+                words = re.split('\W+', titles[url], flags=re.IGNORECASE)
+                print("title: ", soup.find('title').text)
+                #if title contains words in query
+                if(len(set([word.lower() for word in query])
+                    .intersection([word.lower() for word in words])) > 0):
+                    doc_scores_sorted[url] = doc_scores_sorted[url] + 0.5
+        except HTTPError, e:
+            print e.code
+            print e.msg
+    return sorted_sums, sorted_urls
 
 
 # print "Final Scores Sorted:"
@@ -413,16 +415,21 @@ for url in doc_scores_sorted:
 #         print titles[url], ": ", doc_scores_sorted[url], ": ", url
 #     else:
 #         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+sorted_sums,sorted_urls = calc_sim(query)
 rerun = False
-for i in range(0,6):
+i = 0
+while(i != 6):
     if((sorted_sums[i] == 0) and (i == 2)):
         print "Less than 3 documents returned for query! "
         for index,value in enumerate(query):
             if value in thesaurus:
                 #replace with synonym
                 query[index] = thesaurus[value][0]
-        # calc_sim(query)
-        break
+        calc_sim(query)
+        i = 0
+    else:
+        i += 1
+
 
 
 print "Final Scores Sorted:"
