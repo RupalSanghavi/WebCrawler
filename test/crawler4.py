@@ -108,6 +108,7 @@ removed_more_freq = {}
 term_freq = {}
 ID = 0
 titles = {}
+query_in_title = False
 def visible(element):
     if element.parent.name in ['style', 'script', '[document]', 'head', 'title',
     'meta']:
@@ -126,7 +127,7 @@ for url in toVisit:
         data = usock.read()
         usock.close()
         soup = BS(data, "html5lib")
-        reg = re.search('([^\s]+(\.(?i)(txt|htm|html))$)',url)
+        reg = re.search('([^\s]+(\.(?i)(txt|htm|html|php))$)',url)
         dup = False
         for link in soup.find_all('meta'):
             if(filter(visible,link)):
@@ -179,7 +180,13 @@ for url in toVisit:
                     stemWordFreq[stem].append(ID)
         if(soup.find('title')):
             titles[url] = soup.find('title').text
+            words = re.split('\W+', titles[url], flags=re.IGNORECASE)
             print("title: ", soup.find('title').text)
+            #if title contains words in query
+            if(len(set(query).intersection(words)) > 0):
+                print "**********"
+                "INTERSECTION between " + words + " and " + query
+                query_in_title = True
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
         if(is_graphic):
             graphics.append(url)
@@ -331,8 +338,8 @@ for doc in norm_doc_vectors:
         doc_product.append(query_norm_term_freq_vect[i]*doc[i])
     docs_products.append(doc_product)
 i = 1
-print "Products: "
-print docs_products
+# print "Products: "
+# print docs_products
 # for doc in docs_products:
 #     print "Doc" + str(i)
 #     for prod in doc:
@@ -344,10 +351,10 @@ i = 0
 for doc in docs_products:
     doc_scores[visited[i]] = sum(doc)
     i += 1
-
-print "Final Scores:"
-for url in doc_scores:
-    print url, ": ", doc_scores[url]
+#
+# print "Final Scores:"
+# for url in doc_scores:
+#     print url, ": ", doc_scores[url]
 
 #sort dictionary:
 doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
