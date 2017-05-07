@@ -310,6 +310,20 @@ for doc in norm_doc_vectors:
     for score in doc:
         print str(score)
     i += 1
+docs_products = [] # [doc1word1score, doc2word1score, ...]
+              # [doc1word2score, doc2word2score, ...]
+i = 0
+
+for doc in norm_doc_vectors:
+    doc_product = []
+    for i in range(0,len(doc)):
+        doc_product.append(query_norm_term_freq_vect[i]*doc[i])
+    docs_products.append(doc_product)
+
+for doc in docs_products:
+    print("Doc")
+    for prod in doc:
+        print prod
 
 # print("Words:")
 # for word in removed_more:
