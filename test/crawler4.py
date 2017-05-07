@@ -56,7 +56,10 @@ duplicates = []
 counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
-query = ["moore","smu"]
+#query = ["moore","smu"]
+raw_query = raw_input("Please enter a query: ")
+query = re.split('\W+', raw_query, flags=re.IGNORECASE)
+print query
 # for i in range(2,len(sys.argv)):
 #     query.append(sys.argv[i])
 # print(query)
