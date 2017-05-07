@@ -17,6 +17,7 @@ from nltk.corpus import stopwords
 import time
 import sys
 import math
+from collections import OrderedDict
 
 class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
@@ -41,7 +42,7 @@ duplicates = []
 counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
-query = ["fmoore","smu"]
+query = ["moore","smu"]
 # for i in range(2,len(sys.argv)):
 #     query.append(sys.argv[i])
 # print(query)
@@ -271,11 +272,16 @@ query_terms_sqrt = math.sqrt(query_term_sq_sum)
 print("sqrt: ")
 print(query_terms_sqrt)
 query_norm_term_freq_vect = []
-for word in query:
-    query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
+for word in removed_more_freq:
+    if(word in query_word_counts):
+        print "IN"
+        query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
+    else:
+        query_norm_term_freq_vect.append(0)
 print("Query Scores: ")
-for score in query_norm_term_freq_vect:
-    print score
+print query_norm_term_freq_vect
+# for score in query_norm_term_freq_vect:
+#     print score
 
 norm_doc_vectors = []
 url = visited[0]
@@ -283,7 +289,7 @@ for url in visited:
     sq_sum = 0
     normalized_word = []
     sum_squares = 0
-    for word in query:
+    for word in removed_more_freq:
         if(term_freq.get(word) == None):
             print("")
             #thesaurus
@@ -293,23 +299,29 @@ for url in visited:
             else:
                 sum_squares += pow(term_freq[word][url],2)
     sq_sum = math.sqrt(sum_squares)
+    print url + " " + str(sq_sum)
             #sparse vector for all documents for a word
-    for word in query:
+    # print "url: " + url
+    for word in removed_more_freq:
         if(term_freq.get(word) == None):
+            # print word+ "*"
             normalized_word.append(0)
         elif(term_freq[word].get(url) == None):
+            # print word+ "**"
             normalized_word.append(0)
         else:
+            # print word+ "***"
             n_score = term_freq[word][url]/sq_sum
             normalized_word.append(n_score)
     norm_doc_vectors.append(normalized_word)
 print "Scores: "
 i = 1
-for doc in norm_doc_vectors:
-    print "Doc: " + str(i)
-    for score in doc:
-        print str(score)
-    i += 1
+print norm_doc_vectors
+# for doc in norm_doc_vectors:
+#     print "Doc: " + str(i)
+#     for score in doc:
+#         print str(score)
+#     i += 1
 docs_products = [] # [doc1word1score, doc2word1score, ...]
               # [doc1word2score, doc2word2score, ...]
 
@@ -318,11 +330,14 @@ for doc in norm_doc_vectors:
     for i in range(0,len(doc)):
         doc_product.append(query_norm_term_freq_vect[i]*doc[i])
     docs_products.append(doc_product)
-
-for doc in docs_products:
-    print("Doc")
-    for prod in doc:
-        print prod
+i = 1
+print "Products: "
+print docs_products
+# for doc in docs_products:
+#     print "Doc" + str(i)
+#     for prod in doc:
+#         print prod
+#     i += 1
 doc_scores = {} # {url: sum of products}
 i = 0
 
@@ -333,6 +348,14 @@ for doc in docs_products:
 print "Final Scores:"
 for url in doc_scores:
     print url, ": ", doc_scores[url]
+
+#sort dictionary:
+doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
+
+print "Final Scores Sorted:"
+for url in doc_scores_sorted:
+    print url, ": ", doc_scores_sorted[url]
+
 # print("Words:")
 # for word in removed_more:
 #     print word,
