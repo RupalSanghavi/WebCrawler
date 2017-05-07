@@ -103,6 +103,7 @@ docIDs = {}
 stemToIDs = {}
 stemWordFreq = {}
 removed_more_freq = {}
+term_freq = {}
 ID = 0
 titles = {}
 def visible(element):
@@ -157,8 +158,14 @@ for url in toVisit:
                 if(removed_more_freq.get(word) == None):
                     removed_more_freq[word] = []
                     removed_more_freq[word].append(ID)
+                    term_freq[word] = {}
+                    term_freq[word][url] = 1
                 else:
                     removed_more_freq[word].append(ID)
+                    if(term_freq[word].get(url) == None):
+                        term_freq[word][url] = 1
+                    else:
+                        term_freq[word][url] = term_freq[word][url] +1
             #stemmed = [stemmer.stem(word) for word in words]
             # print("After Stemmed: ")
             # print(stemmed)
@@ -193,6 +200,12 @@ for word in sorted(removed_more_freq, key=lambda word: len(removed_more_freq[wor
     print count, str(word),  " : ", str(len(removed_more_freq[word])), " : ",
     removed_more_freq[word]
     count += 1
+print("Term Freqs: ")
+for word in term_freq:
+    print word
+    for doc_url in term_freq[word]:
+        print doc_url, str(term_freq[word][doc_url])
+    print "*************"
 # for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
 #     print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
 #     count += 1
