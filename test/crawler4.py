@@ -16,6 +16,7 @@ import robotparser
 from nltk.corpus import stopwords
 import time
 import sys
+import math
 
 class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
@@ -40,7 +41,7 @@ duplicates = []
 counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
-query = ["moore","smu"]
+query = ["fmoore"]
 # for i in range(2,len(sys.argv)):
 #     query.append(sys.argv[i])
 # print(query)
@@ -185,53 +186,101 @@ for url in toVisit:
     except HTTPError, e:
         print e.code
         print e.msg
-print("Doc IDs: ")
-for key,val in docIDs.iteritems():
-    print(str(key) + " : " + str(val))
-print("Stemmed Words: ")
-for word in stemmed:
-    print word,
-print("")
-# for word in stemWordFreq:
-#     print word, stemWordFreq[word]
-count = 1
+# print("Doc IDs: ")
+# for key,val in docIDs.iteritems():
+#     print(str(key) + " : " + str(val))
+# print("Stemmed Words: ")
+# for word in stemmed:
+#     print word,
+# print("")
+# count = 1
+
+
 print("Word : Freq : Documents that word is on")
 for word in sorted(removed_more_freq, key=lambda word: len(removed_more_freq[word]),reverse=True):
     print count, str(word),  " : ", str(len(removed_more_freq[word])), " : ",
     removed_more_freq[word]
     count += 1
-print("Term Freqs: ")
-for word in term_freq:
-    print word
-    for doc_url in term_freq[word]:
-        print doc_url, str(term_freq[word][doc_url])
-    print "*************"
-# for word in sorted(stemWordFreq, key=lambda word: len(stemWordFreq[word]),reverse=True):
-#     print count, str(word),  " : ", str(len(stemWordFreq[word])), " : ",stemWordFreq[word]
-#     count += 1
-print("Words:")
-for word in removed_more:
-    print word,
-print("")
-print("URLS: ")
-for url in visited:
-    print(url)
-print("Titles: ")
-for url in titles:
-    print url, titles[url]
-print("Outgoing: ")
-for url in set(outgoing):
-    print url
-print("Duplicates: ")
-for url in duplicates:
-    print url
-print("Disallowed: ")
-print(disallowed)
-print("Broken: ")
-for url in broken:
-    print(url)
-print("Graphic Files: ")
-print str(len(graphics))
-for url in graphics:
-    print(url)
-#print(set(visited) - set(outgoing) - set(graphics))
+# print("Term Freqs: ")
+# for word in term_freq:
+#     print word
+#     for doc_url in term_freq[word]:
+#         print doc_url, str(term_freq[word][doc_url])
+#     print "*************"
+word = "fmoore"
+
+tf_raw_word = []
+tf_wght_word = []
+normalized_query = []
+# for word in query:
+#     #word
+#     normalized_word = []
+#     if(term_freq.get(word) == None):
+#         print("")
+#         #thesaurus
+#     else:
+#         sum_squares = 0
+#         for doc_url in term_freq[word]:
+#             print doc_url, str(term_freq[word][doc_url])
+#             sum_squares += pow(term_freq[word][doc_url],2)
+#         sq_sum = math.sqrt(sum_squares)
+#         #append the 0.52
+#         for doc_url in term_freq[word]:
+#             normalized_word.append(term_freq[word][doc_url]/sq_sum)
+# print "Scores: "
+# for arr in normalized_query:
+#     for score in arr:
+#         print score
+
+for word in query:
+    #word
+    normalized_word = []
+    if(term_freq.get(word) == None):
+        print("")
+        #thesaurus
+    else:
+        sum_squares = 0
+        for url in visited:
+            if(term_freq[word].get(url) == None):
+                sum_squares += 0
+            else:
+                sum_squares += pow(term_freq[word][url],2)
+        sq_sum = math.sqrt(sum_squares)
+        #sparse vector for all documents for a word
+        for url in visited:
+            if(term_freq[word].get(url) == None):
+                normalized_word.append(0)
+            else:
+                normalized_word.append(term_freq[word][url]/sq_sum)
+    print "Scores: "
+    for score in normalized_word:
+        print score
+
+
+
+
+# print("Words:")
+# for word in removed_more:
+#     print word,
+# print("")
+# print("URLS: ")
+# for url in visited:
+#     print(url)
+# print("Titles: ")
+# for url in titles:
+#     print url, titles[url]
+# print("Outgoing: ")
+# for url in set(outgoing):
+#     print url
+# print("Duplicates: ")
+# for url in duplicates:
+#     print url
+# print("Disallowed: ")
+# print(disallowed)
+# print("Broken: ")
+# for url in broken:
+#     print(url)
+# print("Graphic Files: ")
+# print str(len(graphics))
+# for url in graphics:
+#     print(url)
