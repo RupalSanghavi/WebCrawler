@@ -183,9 +183,13 @@ for url in toVisit:
             words = re.split('\W+', titles[url], flags=re.IGNORECASE)
             print("title: ", soup.find('title').text)
             #if title contains words in query
-            if(len(set(query).intersection(words)) > 0):
-                print "**********"
-                "INTERSECTION between " + words + " and " + query
+            if(len(set([word.lower() for word in query])
+                .intersection([word.lower() for word in words])) > 0):
+                # print "**********"
+                # "INTERSECTION between "
+                # print words
+                # print " and "
+                # print query
                 query_in_title = True
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
         if(is_graphic):
@@ -276,17 +280,15 @@ query_term_sq_sum = 0
 for word in query:
     query_term_sq_sum += pow(query_word_counts[word],2)
 query_terms_sqrt = math.sqrt(query_term_sq_sum)
-print("sqrt: ")
-print(query_terms_sqrt)
+
 query_norm_term_freq_vect = []
 for word in removed_more_freq:
     if(word in query_word_counts):
-        print "IN"
         query_norm_term_freq_vect.append(query_word_counts[word]/query_terms_sqrt)
     else:
         query_norm_term_freq_vect.append(0)
-print("Query Scores: ")
-print query_norm_term_freq_vect
+# print("Query Scores: ")
+# print query_norm_term_freq_vect
 # for score in query_norm_term_freq_vect:
 #     print score
 
@@ -306,7 +308,7 @@ for url in visited:
             else:
                 sum_squares += pow(term_freq[word][url],2)
     sq_sum = math.sqrt(sum_squares)
-    print url + " " + str(sq_sum)
+    # print url + " " + str(sq_sum)
             #sparse vector for all documents for a word
     # print "url: " + url
     for word in removed_more_freq:
@@ -321,9 +323,9 @@ for url in visited:
             n_score = term_freq[word][url]/sq_sum
             normalized_word.append(n_score)
     norm_doc_vectors.append(normalized_word)
-print "Scores: "
-i = 1
-print norm_doc_vectors
+# print "Scores: "
+# i = 1
+# print norm_doc_vectors
 # for doc in norm_doc_vectors:
 #     print "Doc: " + str(i)
 #     for score in doc:
@@ -358,11 +360,35 @@ for doc in docs_products:
 
 #sort dictionary:
 doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
+#
+
+for url in doc_scores_sorted:
+    if url == "mailto:fmoore@lyle.smu.edu":
+        continue
+    try:
+        usock = urlopen(url)
+        data = usock.read()
+        usock.close()
+        soup = BS(data, "html5lib")
+        if(soup.find('title')):
+            titles[url] = soup.find('title').text
+            words = re.split('\W+', titles[url], flags=re.IGNORECASE)
+            print("title: ", soup.find('title').text)
+            #if title contains words in query
+            if(len(set([word.lower() for word in query])
+                .intersection([word.lower() for word in words])) > 0):
+                doc_scores_sorted[url] = doc_scores_sorted[url] + 0.5
+    except HTTPError, e:
+        print e.code
+        print e.msg
+
 
 print "Final Scores Sorted:"
 for url in doc_scores_sorted:
-    print url, ": ", doc_scores_sorted[url]
-
+    if url in titles:
+        print titles[url], ": ", doc_scores_sorted[url], ": ", url
+    else:
+        print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
 # print("Words:")
 # for word in removed_more:
 #     print word,
