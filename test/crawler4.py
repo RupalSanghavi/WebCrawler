@@ -41,7 +41,7 @@ duplicates = []
 counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
-query = ["fmoore"]
+query = ["fmoore","smu"]
 # for i in range(2,len(sys.argv)):
 #     query.append(sys.argv[i])
 # print(query)
@@ -232,32 +232,67 @@ normalized_query = []
 #     for score in arr:
 #         print score
 
-for word in query:
-    #word
+# for word in query:
+#     #word
+#     normalized_word = []
+#     if(term_freq.get(word) == None):
+#         print("")
+#         #thesaurus
+#     else:
+#         sum_squares = 0
+#         for url in visited:
+#             if(term_freq[word].get(url) == None):
+#                 sum_squares += 0
+#             else:
+#                 sum_squares += pow(term_freq[word][url],2)
+#         sq_sum = math.sqrt(sum_squares)
+#         #sparse vector for all documents for a word
+#         for url in visited:
+#             if(term_freq[word].get(url) == None):
+#                 normalized_word.append(0)
+#             else:
+#                 normalized_word.append(term_freq[word][url]/sq_sum)
+#     print "Scores: "
+#     for score in normalized_word:
+#         print score
+#
+norm_doc_vectors = []
+url = visited[0]
+for url in visited:
+    sq_sum = 0
     normalized_word = []
-    if(term_freq.get(word) == None):
-        print("")
-        #thesaurus
-    else:
-        sum_squares = 0
-        for url in visited:
+    sum_squares = 0
+    for word in query:
+        if(term_freq.get(word) == None):
+            print("")
+            #thesaurus
+        else:
             if(term_freq[word].get(url) == None):
                 sum_squares += 0
             else:
+                print "INNN"
                 sum_squares += pow(term_freq[word][url],2)
-        sq_sum = math.sqrt(sum_squares)
-        #sparse vector for all documents for a word
-        for url in visited:
-            if(term_freq[word].get(url) == None):
-                normalized_word.append(0)
-            else:
-                normalized_word.append(term_freq[word][url]/sq_sum)
-    print "Scores: "
-    for score in normalized_word:
-        print score
-
-
-
+    sq_sum = math.sqrt(sum_squares)
+            #sparse vector for all documents for a word
+    for word in query:
+        print "word: " + word
+        print "Sum: " + str(sq_sum)
+        if(term_freq.get(word) == None):
+            normalized_word.append(0)
+        elif(term_freq[word].get(url) == None):
+            normalized_word.append(0)
+        else:
+            n_score = term_freq[word][url]/sq_sum
+            normalized_word.append(n_score)
+            print "score: " + str(n_score)
+    norm_doc_vectors.append(normalized_word)
+print "Scores: "
+i = 1
+for doc in norm_doc_vectors:
+    print "Doc: " + str(i)
+    for score in doc:
+        print str(score)
+    i += 1
 
 # print("Words:")
 # for word in removed_more:
