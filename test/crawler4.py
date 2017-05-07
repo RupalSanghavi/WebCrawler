@@ -413,6 +413,28 @@ for url in doc_scores_sorted:
 #         print titles[url], ": ", doc_scores_sorted[url], ": ", url
 #     else:
 #         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+rerun = False
+for i in range(0,6):
+    if((sorted_sums[i] == 0) and (i == 2)):
+        print "Less than 3 documents returned for query! "
+        for index,value in enumerate(query):
+            if value in thesaurus:
+                #replace with synonym
+                query[index] = thesaurus[value][0]
+        # calc_sim(query)
+        break
+
+
+print "Final Scores Sorted:"
+
+for i in range(0,6):
+    url = sorted_urls[i]
+    score = sorted_sums[i]
+    if url in titles:
+        print titles[url], ": ", score, ": ", url
+    else:
+        print "Title Not Found ", ": ", score, ": ", url
+
 
 
 # for i in range(-6,-1):
