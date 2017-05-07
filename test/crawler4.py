@@ -31,7 +31,21 @@ class MyHTMLParser(HTMLParser):
 # the a mechanize browser object
 url = "http://lyle.smu.edu/~fmoore"
 br = mechanize.Browser()
-
+thesaurus = {}
+thesaurus['beautiful'] = ['nice','fancy']
+thesaurus['chapter'] = ['chpt']
+thesaurus['responsible'] = ['owner','accountable']
+thesaurus['freemanmoore'] = ['freeman','moore']
+thesaurus['dept'] = ['department']
+thesaurus['brown'] = ['beige','tan','auburn']
+thesaurus['tues'] = ['tuesday']
+thesaurus['sole'] = ['owner','single','shoe','boot']
+thesaurus['homework'] = ['hmwk','home','work']
+thesaurus['novel'] = ['book','unique']
+thesaurus['computer'] = ['cse']
+thesaurus['story'] = ['novel','book']
+thesaurus['hocuspocus'] = ['magic','abracadabra']
+thesaurus['thisworks'] = ['this','work']
 # create lists for the urls in que and visited urls
 urls = [url]
 toVisit = []
@@ -360,7 +374,17 @@ for doc in docs_products:
 
 #sort dictionary:
 doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
-#
+#doc_scores_list = [[key,val] for key,val in doc_scores.items()]
+doc_sums = [value for value in doc_scores.values()]
+zipped = zip(doc_sums,visited)
+zipped.sort()
+sorted_urls = list(reversed([url for (doc_sum,url) in zipped]))
+sorted_sums = list(reversed([doc_sum for (doc_sum,url) in zipped]))
+
+print "Sums: "
+print sorted_sums
+print sorted_urls
+print str(len(sorted_sums)) + " " + str(len(sorted_urls))
 
 for url in doc_scores_sorted:
     if url == "mailto:fmoore@lyle.smu.edu":
@@ -383,12 +407,24 @@ for url in doc_scores_sorted:
         print e.msg
 
 
-print "Final Scores Sorted:"
-for url in doc_scores_sorted:
-    if url in titles:
-        print titles[url], ": ", doc_scores_sorted[url], ": ", url
-    else:
-        print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+# print "Final Scores Sorted:"
+# for url in doc_scores_sorted:
+#     if url in titles:
+#         print titles[url], ": ", doc_scores_sorted[url], ": ", url
+#     else:
+#         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+
+
+# for i in range(-6,-1):
+#     url = doc_scores_sorted.keys()[i]
+#     print url
+#     if url in titles:
+#         print titles[url], ": ", doc_scores_sorted[url], ": ", url
+#     else:
+#         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+
+
+
 # print("Words:")
 # for word in removed_more:
 #     print word,
