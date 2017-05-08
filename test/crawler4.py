@@ -442,7 +442,6 @@ while(run):
     if(query[0] == "stop"):
         run = False
         break
-
     sorted_urls,sorted_sums= calc_sim(query)
     sorted_sums = list(reversed(sorted_sums))
     sorted_urls = list(reversed(sorted_urls))
@@ -472,7 +471,19 @@ while(run):
             print titles[url], ": ", score, ": ", url
         else:
             print "Title Not Found ", ": ", score, ": ", url
-
+        usock = urlopen(url)
+        data = usock.read()
+        usock.close()
+        soup = BS(data, "html5lib")
+        text = soup.findAll(text=True)
+        textJoined = ' '.join(text)
+        words = re.split('\W+', textJoined, flags=re.IGNORECASE)
+        print "First 20 words: "
+        for i in range(0,20):
+            print words[i],
+        print ""
+        print "****************************************************"
+        print ""
 
 
     # for i in range(-6,-1):
