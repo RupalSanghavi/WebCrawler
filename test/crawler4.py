@@ -133,6 +133,7 @@ def visible(element):
     return True
 
 # print(visited)
+usable_urls = []
 for url in toVisit:
     if url == "mailto:fmoore@lyle.smu.edu":
         continue
@@ -154,6 +155,7 @@ for url in toVisit:
                     counts[link.get('content')] = 1
 
         if(reg and not dup):
+            usable_urls.append(url)
             docIDs[ID] = url
             ID += 1
             text = soup.findAll(text=True)
@@ -285,8 +287,16 @@ tf_wght_word = []
 #         print score
 #
 
-#normalizing the query
+#remove duplicates and outgoing links
+for url in usable_urls:
+    if(url in outgoing):
+        print "delete " + url
+        usable_urls.remove(url)
+toVisit = usable_urls
+print "CHECK: "
+print toVisit
 def calc_sim(query):
+
     query_word_counts = {}
     for word in query:
         if word not in query_word_counts:
@@ -311,7 +321,7 @@ def calc_sim(query):
 
     norm_doc_vectors = []
     url = visited[0]
-    for url in visited:
+    for url in toVisit:
         sq_sum = 0
         normalized_word = []
         sum_squares = 0
@@ -368,7 +378,7 @@ def calc_sim(query):
     i = 0
 
     for doc in docs_products:
-        doc_scores[visited[i]] = sum(doc)
+        doc_scores[toVisit[i]] = sum(doc)
         i += 1
     #
     # print "Final Scores:"
@@ -506,9 +516,9 @@ while(run):
     # print("Titles: ")
     # for url in titles:
     #     print url, titles[url]
-    # print("Outgoing: ")
-    # for url in set(outgoing):
-    #     print url
+print("Outgoing: ")
+for url in set(outgoing):
+    print url
     # print("Duplicates: ")
     # for url in duplicates:
     #     print url
