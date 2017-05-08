@@ -223,11 +223,12 @@ for url in toVisit:
 # count = 1
 
 
-print("Word : Freq : Documents that word is on")
-for word in sorted(removed_more_freq, key=lambda word: len(removed_more_freq[word]),reverse=True):
-    print count, str(word),  " : ", str(len(removed_more_freq[word])), " : ",
-    removed_more_freq[word]
-    count += 1
+# print("Word : Freq : Documents that word is on")
+# for word in sorted(removed_more_freq, key=lambda word: len(removed_more_freq[word]),reverse=True):
+#     print count, str(word),  " : ", str(len(removed_more_freq[word])), " : ",
+#     removed_more_freq[word]
+#     count += 1
+
 # print("Term Freqs: ")
 # for word in term_freq:
 #     print word
@@ -377,16 +378,30 @@ def calc_sim(query):
     #sort dictionary:
     doc_scores_sorted = OrderedDict(sorted(doc_scores.items(), key = lambda t: t[1]))
     #doc_scores_list = [[key,val] for key,val in doc_scores.items()]
-    doc_sums = [value for value in doc_scores.values()]
-    zipped = zip(doc_sums,visited)
-    zipped.sort()
-    sorted_urls = list(reversed([url for (doc_sum,url) in zipped]))
-    sorted_sums = list(reversed([doc_sum for (doc_sum,url) in zipped]))
 
-    print "Sums: "
-    print sorted_sums
-    print sorted_urls
-    print str(len(sorted_sums)) + " " + str(len(sorted_urls))
+
+    # doc_sums = [value for value in doc_scores.values()]
+    # print "LOOK HERE: "
+    # top_six_indices = sorted(range(len(doc_sums)),key=lambda x: doc_sums[x])[-6:]
+    # sorted_sums = []
+    # sorted_urls = []
+    # for indice in top_six_indices:
+    #     sorted_sums.append(doc_sums[indice])
+    #     sorted_urls.append(visited[indice])
+    # sorted_sums = list(reversed(sorted_sums))
+    # sorted_urls = list(reversed(sorted_urls))
+
+    #sorted_sums, sorted_urls = (list(t) for t in zip(*sorted(zip(doc_sums,visited))))
+    # print doc_scores
+    # zipped = zip(doc_sums,visited)
+    # zipped.sort()
+    # sorted_urls = list(reversed([url for (doc_sum,url) in zipped]))
+    # sorted_sums = list(reversed([doc_sum for (doc_sum,url) in zipped]))
+
+    # print "Sums: "
+    # print sorted_sums
+    # print sorted_urls
+    # print str(len(sorted_sums)) + " " + str(len(sorted_urls))
 
     for url in doc_scores_sorted:
         if url == "mailto:fmoore@lyle.smu.edu":
@@ -399,7 +414,7 @@ def calc_sim(query):
             if(soup.find('title')):
                 titles[url] = soup.find('title').text
                 words = re.split('\W+', titles[url], flags=re.IGNORECASE)
-                print("title: ", soup.find('title').text)
+                # print("title: ", soup.find('title').text)
                 #if title contains words in query
                 if(len(set([word.lower() for word in query])
                     .intersection([word.lower() for word in words])) > 0):
@@ -407,7 +422,8 @@ def calc_sim(query):
         except HTTPError, e:
             print e.code
             print e.msg
-    return sorted_sums, sorted_urls
+    #return sorted_sums, sorted_urls
+    return [x for x in doc_scores_sorted.keys()],[x for x in doc_scores_sorted.values()]
 
 
 # print "Final Scores Sorted:"
@@ -421,11 +437,16 @@ while(run):
     print(" ")
     raw_query = raw_input("Please enter a query: ")
     query = re.split('\W+', raw_query, flags=re.IGNORECASE)
+    query = [word.lower() for word in query]
+    print query
     if(query[0] == "stop"):
         run = False
         break
 
-    sorted_sums,sorted_urls = calc_sim(query)
+    sorted_urls,sorted_sums= calc_sim(query)
+    sorted_sums = list(reversed(sorted_sums))
+    sorted_urls = list(reversed(sorted_urls))
+
     rerun = False
     i = 0
     while(i != 6):
