@@ -57,9 +57,7 @@ counts = {}
 disallowed = []
 maxPages = int(sys.argv[1])
 #query = ["moore","smu"]
-raw_query = raw_input("Please enter a query: ")
-query = re.split('\W+', raw_query, flags=re.IGNORECASE)
-print query
+
 # for i in range(2,len(sys.argv)):
 #     query.append(sys.argv[i])
 # print(query)
@@ -200,14 +198,14 @@ for url in toVisit:
             words = re.split('\W+', titles[url], flags=re.IGNORECASE)
             print("title: ", soup.find('title').text)
             #if title contains words in query
-            if(len(set([word.lower() for word in query])
-                .intersection([word.lower() for word in words])) > 0):
-                # print "**********"
-                # "INTERSECTION between "
-                # print words
-                # print " and "
-                # print query
-                query_in_title = True
+            # if(len(set([word.lower() for word in query])
+            #     .intersection([word.lower() for word in words])) > 0):
+            #     # print "**********"
+            #     # "INTERSECTION between "
+            #     # print words
+            #     # print " and "
+            #     # print query
+            #     query_in_title = True
         is_graphic = re.search('([^\s]+(\.(?i)(jpg|png|gif|bmp))$)',url)
         if(is_graphic):
             graphics.append(url)
@@ -418,67 +416,76 @@ def calc_sim(query):
 #         print titles[url], ": ", doc_scores_sorted[url], ": ", url
 #     else:
 #         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
-sorted_sums,sorted_urls = calc_sim(query)
-rerun = False
-i = 0
-while(i != 6):
-    if((sorted_sums[i] == 0) and (i == 2)):
-        print "Less than 3 documents returned for query! "
-        for index,value in enumerate(query):
-            if value in thesaurus:
-                #replace with synonym
-                query[index] = thesaurus[value][0]
-        calc_sim(query)
-        i = 0
-    else:
-        i += 1
+run = True
+while(run):
+    print(" ")
+    raw_query = raw_input("Please enter a query: ")
+    query = re.split('\W+', raw_query, flags=re.IGNORECASE)
+    if(query[0] == "stop"):
+        run = False
+        break
+
+    sorted_sums,sorted_urls = calc_sim(query)
+    rerun = False
+    i = 0
+    while(i != 6):
+        if((sorted_sums[i] == 0) and (i == 2)):
+            print "Less than 3 documents returned for query! "
+            for index,value in enumerate(query):
+                if value in thesaurus:
+                    #replace with synonym
+                    query[index] = thesaurus[value][0]
+            calc_sim(query)
+            i = 0
+        else:
+            i += 1
 
 
 
-print "Final Scores Sorted:"
+    print "Final Scores Sorted:"
 
-for i in range(0,6):
-    url = sorted_urls[i]
-    score = sorted_sums[i]
-    if url in titles:
-        print titles[url], ": ", score, ": ", url
-    else:
-        print "Title Not Found ", ": ", score, ": ", url
-
-
-
-# for i in range(-6,-1):
-#     url = doc_scores_sorted.keys()[i]
-#     print url
-#     if url in titles:
-#         print titles[url], ": ", doc_scores_sorted[url], ": ", url
-#     else:
-#         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+    for i in range(0,6):
+        url = sorted_urls[i]
+        score = sorted_sums[i]
+        if url in titles:
+            print titles[url], ": ", score, ": ", url
+        else:
+            print "Title Not Found ", ": ", score, ": ", url
 
 
 
-# print("Words:")
-# for word in removed_more:
-#     print word,
-# print("")
-# print("URLS: ")
-# for url in visited:
-#     print(url)
-# print("Titles: ")
-# for url in titles:
-#     print url, titles[url]
-# print("Outgoing: ")
-# for url in set(outgoing):
-#     print url
-# print("Duplicates: ")
-# for url in duplicates:
-#     print url
-# print("Disallowed: ")
-# print(disallowed)
-# print("Broken: ")
-# for url in broken:
-#     print(url)
-# print("Graphic Files: ")
-# print str(len(graphics))
-# for url in graphics:
-#     print(url)
+    # for i in range(-6,-1):
+    #     url = doc_scores_sorted.keys()[i]
+    #     print url
+    #     if url in titles:
+    #         print titles[url], ": ", doc_scores_sorted[url], ": ", url
+    #     else:
+    #         print "Title Not Found ", ": ", doc_scores_sorted[url], ": ", url
+
+
+
+    # print("Words:")
+    # for word in removed_more:
+    #     print word,
+    # print("")
+    # print("URLS: ")
+    # for url in visited:
+    #     print(url)
+    # print("Titles: ")
+    # for url in titles:
+    #     print url, titles[url]
+    # print("Outgoing: ")
+    # for url in set(outgoing):
+    #     print url
+    # print("Duplicates: ")
+    # for url in duplicates:
+    #     print url
+    # print("Disallowed: ")
+    # print(disallowed)
+    # print("Broken: ")
+    # for url in broken:
+    #     print(url)
+    # print("Graphic Files: ")
+    # print str(len(graphics))
+    # for url in graphics:
+    #     print(url)
