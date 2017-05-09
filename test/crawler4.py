@@ -47,6 +47,11 @@ thesaurus['story'] = ['novel','book']
 thesaurus['hocuspocus'] = ['magic','abracadabra']
 thesaurus['thisworks'] = ['this','work']
 # create lists for the urls in que and visited urls
+thesaurus_rev = {}
+for key in thesaurus:
+    thesaurus_rev[key] = {}
+    for syn in thesaurus[key]:
+        thesaurus_rev[key][syn] = False
 urls = [url]
 toVisit = []
 visited = []
@@ -95,6 +100,7 @@ while (len(urls)>0) and (count < maxPages):
                 rp.read()
                 allowed = rp.can_fetch('*','/'+link.url)
                 #print(allowed," ",link.url)
+
                 if newurl not in visited and url in newurl and allowed:
                     toVisit.append(newurl)
                     visited.append(newurl)
@@ -145,14 +151,25 @@ for url in toVisit:
         soup = BS(data, "html5lib")
         reg = re.search('([^\s]+(\.(?i)(txt|htm|html|php))$)',url)
         dup = False
-        for link in soup.find_all('meta'):
-            if(filter(visible,link)):
-            #if duplicate
-                if link.get('content') in counts:
-                    duplicates.append(url)
-                    dup = True
-                else:
-                    counts[link.get('content')] = 1
+
+        if data in counts:
+            print "FOUND DUPLICATE" + url
+            duplicates.append(url)
+            dup = True
+        else:
+            dup = False
+            counts[data] = 1
+        # for link in soup.find_all('meta'):
+        #     # if(filter(visible,link)):
+        #     #     print("IN FILTER")
+        #     # #if duplicate
+        #     if link.get('content') in counts:
+        #         print "FOUND DUPLICATE" + url
+        #         # duplicates.append(url)
+        #         dup = True
+        #     else:
+        #         dup = False
+        #         #counts[link.get('content')] = 1
 
         if(reg and not dup):
             usable_urls.append(url)
@@ -289,7 +306,7 @@ tf_wght_word = []
 
 #remove duplicates and outgoing links
 for url in usable_urls:
-    if(url in outgoing):
+    if(url in outgoing) or (url in duplicates):
         print "delete " + url
         usable_urls.remove(url)
 toVisit = usable_urls
@@ -458,18 +475,35 @@ while(run):
 
     rerun = False
     i = 0
+    # while(i != 6):
+    #     if((sorted_sums[i] == 0) and (i == 2)):
+    #         print "Less than 3 documents returned for query! "
+    #         for index,value in enumerate(query):
+    #             if value in thesaurus:
+    #                 #replace with synonym
+    #                 query[index] = thesaurus[value][0]
+    #         calc_sim(query)
+    #         i = 0
+    #     else:
+    #         i += 1
+
     while(i != 6):
         if((sorted_sums[i] == 0) and (i == 2)):
             print "Less than 3 documents returned for query! "
             for index,value in enumerate(query):
                 if value in thesaurus:
                     #replace with synonym
-                    query[index] = thesaurus[value][0]
-            calc_sim(query)
+                    for syn in thesaurus[value]:
+                        if thesaurus_rev[value][syn] == False:
+                            query[index] = syn
+                            thesaurus_rev[value][syn] = True
+                            break
+            sorted_urls,sorted_sums= calc_sim(query)
+            sorted_sums = list(reversed(sorted_sums))
+            sorted_urls = list(reversed(sorted_urls))
             i = 0
         else:
             i += 1
-
 
 
     print "Final Scores Sorted:"
@@ -489,8 +523,12 @@ while(run):
         textJoined = ' '.join(text)
         words = re.split('\W+', textJoined, flags=re.IGNORECASE)
         print "First 20 words: "
-        for i in range(0,20):
-            print words[i],
+        if(len(words) < 20):
+            for i in range(0,len(words)):
+                print words[i],
+        else:
+            for i in range(0,20):
+                print words[i],
         print ""
         print "****************************************************"
         print ""
@@ -516,12 +554,12 @@ while(run):
     # print("Titles: ")
     # for url in titles:
     #     print url, titles[url]
-print("Outgoing: ")
-for url in set(outgoing):
+# print("Outgoing: ")
+# for url in set(outgoing):
+#     print url
+print("Duplicates: ")
+for url in duplicates:
     print url
-    # print("Duplicates: ")
-    # for url in duplicates:
-    #     print url
     # print("Disallowed: ")
     # print(disallowed)
     # print("Broken: ")
