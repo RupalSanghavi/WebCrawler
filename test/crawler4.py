@@ -495,15 +495,25 @@ while(run):
     #         i = 0
     #     else:
     #         i += 1
-
-    while(i != 6):
-        if((sorted_sums[i] == 0) and (i == 2)):
+    replaced = True
+    max_ind = 6
+    if(len(sorted_sums) < 6):
+        max_ind = len(sorted_sums)
+    while(i != max_ind):
+        #if no more synonyms in thesaurus
+        if((replaced == False) and (sorted_sums[i] == 0) and (i == 2)):
+            print "Replaced with synonyms but still getting less than 3 documents."
+            break
+        elif((sorted_sums[i] == 0) and (i == 2)):
+            replaced = False
             print "Less than 3 documents returned for query! "
             for index,value in enumerate(query):
                 if value in thesaurus:
                     #replace with synonym
                     for syn in thesaurus[value]:
                         if thesaurus_rev[value][syn] == False:
+                            replaced = True
+                            print "Replacing " + query[index] + ' with ' + syn
                             query[index] = syn
                             thesaurus_rev[value][syn] = True
                             break
@@ -517,7 +527,7 @@ while(run):
 
     print "Final Scores Sorted:"
 
-    for i in range(0,6):
+    for i in range(0,max_ind):
         url = sorted_urls[i]
         score = sorted_sums[i]
         if url in titles:
@@ -566,6 +576,10 @@ while(run):
 # print("Outgoing: ")
 # for url in set(outgoing):
 #     print url
+print "Number of words in dictionary: " + str(len(removed_more_freq))
+print "Words in dictionary: "
+print removed_more_freq
+
 print("Duplicates: ")
 for url in duplicates:
     print url
