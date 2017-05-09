@@ -48,6 +48,7 @@ thesaurus['hocuspocus'] = ['magic','abracadabra']
 thesaurus['thisworks'] = ['this','work']
 # create lists for the urls in que and visited urls
 thesaurus_rev = {}
+
 for key in thesaurus:
     thesaurus_rev[key] = {}
     for syn in thesaurus[key]:
@@ -180,8 +181,16 @@ for url in toVisit:
             words = re.split('\W+', textJoined, flags=re.IGNORECASE)
             # print("WORDS:")
             # print(words)
-            filtered_words = [word for word in words if word not in
-                set(stopwords.words('english'))]
+
+            # filtered_words = [word for word in words if word not in
+            #     set(stopwords.words('english'))]
+            filtered_words = []
+            for word in words:
+                if word in set(stopwords.words('english')):
+                    if word == "this":
+                        filtered_words.append(word)
+                else:
+                    filtered_words.append(word)
 
             stemmed = []
             removed_more = []
